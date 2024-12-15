@@ -73,13 +73,14 @@ const Licon = {
 if(loc)console.log(loc.latitude);
 
 
+
 return (
     <ReactMapGL
         mapboxAccessToken = "pk.eyJ1IjoibWluaDEwMDkiLCJhIjoiY200NWRiMGdqMHZ4ZjJqb294MjV3bmdiMiJ9.lAsmEJWGKNrEdGPHs5Ze7Q"
         // mapboxAccessToken = {process.env.MAPBOX_TOKEN}
         initialViewState={{
-          latitude: center.lat,
-          longitude: center.lng,
+          latitude:  (loc ? loc.longitude : center.lat),
+          longitude: (loc ? loc.latitude : center.lng) ,
           zoom: 17
         }}
         style={{width: '100%', height: '90vh'}}
