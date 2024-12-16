@@ -9,13 +9,13 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 export default function Home() {
   
 type loc = {
-  id?: Number;
-  longitude?: number;
-  latitude?: number;
-  time?:Date;
+  id : Number;
+  longitude: number;
+  latitude: number;
+  time :Date;
 };
 
-const [loc , setLoc]= useState<loc | null >(null);
+const [Loc , setLoc]= useState<loc | null >(null);
 
 const getLocation = async () => {
   try {
@@ -26,8 +26,8 @@ const getLocation = async () => {
       }
     });
     if( res ) {
-      const loc = await res.json(); 
-      if(loc) setLoc(loc);  
+      const Loc = await res.json(); 
+      if(Loc) setLoc(Loc);  
    
     }
    
@@ -46,14 +46,6 @@ const center = {
   lng: 105.84318434418022,
 }
 
-const [viewState, setViewState] = React.useState({
-  longitude: 105.84318434418022,
-  latitude: 21.006358476679914,
-  zoom: 3.5
-});
-
-
-
 
 const Picon = {
   url :"target.png",
@@ -68,31 +60,52 @@ const Licon = {
 //   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
 // })
 
+if(Loc){console.log(Loc);
 
-
-if(loc)console.log(loc.latitude);
-
-
-
-return (
+const point ={
+  lat: Loc.latitude,
+  lng: Loc.longitude,
+}
+  return (
     <ReactMapGL
         mapboxAccessToken = "pk.eyJ1IjoibWluaDEwMDkiLCJhIjoiY200NWRiMGdqMHZ4ZjJqb294MjV3bmdiMiJ9.lAsmEJWGKNrEdGPHs5Ze7Q"
         // mapboxAccessToken = {process.env.MAPBOX_TOKEN}
         initialViewState={{
-          latitude:  (loc ? loc.longitude : center.lat),
-          longitude: (loc ? loc.latitude : center.lng) ,
+          latitude: Loc.latitude ,
+          longitude: Loc.longitude ,
           zoom: 17
         }}
         style={{width: '100%', height: '90vh'}}
         mapStyle="mapbox://styles/mapbox/streets-v9"
     >
-      {loc && <Marker longitude={loc.latitude} latitude={loc.longitude} color = 'red' >
+      {Loc && <Marker longitude = {point.lng} latitude = {point.lat} color = 'red' >
         {/* <img src= {Picon.url}/> */}
       </Marker>} 
+    </ReactMapGL>
+    // <main>
+    //   {loc && <h1>{loc.longitude} </h1>}
+    //   {loc && <h1>{loc.latitude} </h1>}
+    //   {!loc && <h1> asfasf </h1>}
+    // </main>
+    )
+}
+else{
+  return (
+  <ReactMapGL
+        mapboxAccessToken = "pk.eyJ1IjoibWluaDEwMDkiLCJhIjoiY200NWRiMGdqMHZ4ZjJqb294MjV3bmdiMiJ9.lAsmEJWGKNrEdGPHs5Ze7Q"
+        // mapboxAccessToken = {process.env.MAPBOX_TOKEN}
+        initialViewState={{
+          latitude:  center.lat,
+          longitude:  center.lng,
+          zoom: 17
+        }}
+        style={{width: '100%', height: '90vh'}}
+        mapStyle="mapbox://styles/mapbox/streets-v9"
+    >
 
-      {!loc && <Marker longitude={center.lng} latitude={center.lat} color = 'red' >
+       <Marker longitude={center.lng} latitude={center.lat} color = 'red' >
         {/* <img src= {Picon.url}/> */}
-      </Marker>}
+      </Marker>
     </ReactMapGL>
     // <main>
     //   {loc && <h1>{loc.longitude} </h1>}
@@ -101,4 +114,5 @@ return (
     // </main>
     )
 
+}
 }
