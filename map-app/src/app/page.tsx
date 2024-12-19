@@ -5,27 +5,33 @@ import { useEffect, useState } from "react";
 import ReactMapGL , {Marker} from 'react-map-gl';
 import * as turf from '@turf/turf';
 import 'mapbox-gl/dist/mapbox-gl.css';
-
+const GEOFENCE = turf.circle([-74.0122106, 40.7467898], 5, {units: 'miles'});
 export default function Home() {
   
 type loc = {
   id : Number;
-  longitude: number;
-  latitude: number;
-  time :Date;
+  longitude: number | undefined;
+  latitude: number | undefined;
+  time :string;
+};
+
+type state = {
+  longitude: number | undefined;
+  latitude: number | undefined;
+  zoom :number | undefined;
 };
 
 const [Loc , setLoc]= useState<loc | null >({
   id : 32,
   longitude: 105.84318434418022,
   latitude: 21.006358476679914,
-  time :null
+  time : "1245123"
 });
 
-const [viewState, setviewState] = useState({
+const [viewState, setviewState] = useState < state | null>({
   latitude: 21.006358476679914,
   longitude: 105.84318434418022,
-  zoom: 17
+  zoom: 16
 } )
 
 
@@ -49,7 +55,7 @@ const getLocation = async () => {
     const res= await fetch('http://203.171.20.94:9202/iot/latest',{
       method: "GET",
       next: {
-        revalidate: 5,
+        revalidate: 1,
       }
     });
     if( res ) {
@@ -73,16 +79,10 @@ useEffect(()=>{
   setviewState({
       latitude:Loc?.latitude,
       longitude:Loc?.longitude,
-      zoom: 17,
+      zoom: 16,
   })
 },[Loc]);
 
-const onMove = React.useCallback(({viewState}) => {
-  const newCenter = [viewState.longitude, viewState.latitude];
-  if (turf.booleanPointInPolygon(newCenter, GEOFENCE)) {
-    setViewState(newCenter);
-  }
-}, [])
 
 
 if(Loc){
@@ -95,7 +95,7 @@ if(Loc){
         style={{width: '100%', height: '90vh'}}
         mapStyle="mapbox://styles/mapbox/streets-v9"
     >
-      {Loc && <Marker longitude = {Loc.longitude} latitude = {Loc.latitude} color = 'green' >
+      {Loc.longitude !== undefined&& Loc.latitude !== undefined  && <Marker longitude = {Loc?.longitude} latitude = {Loc?.latitude} color = 'green' >
 
       </Marker>} 
     </ReactMapGL>
@@ -109,7 +109,7 @@ else{
         initialViewState={{
           latitude:  center.lat,
           longitude:  center.lng,
-          zoom: 17
+          zoom: 16
         }}
         style={{width: '100%', height: '90vh'}}
         mapStyle="mapbox://styles/mapbox/streets-v9"
