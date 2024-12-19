@@ -1,9 +1,9 @@
-"use client"; 
+ "use client"; 
 // import { GoogleMap, LoadScript, MarkerF ,useJsApiLoader } from '@react-google-maps/api';
 import React from 'react';
 import { useEffect, useState } from "react";
 import ReactMapGL , {Marker} from 'react-map-gl';
-
+import * as turf from '@turf/turf';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 export default function Home() {
@@ -15,31 +15,19 @@ type loc = {
   time :Date;
 };
 
-const [Loc , setLoc]= useState<loc | null >(null);
+const [Loc , setLoc]= useState<loc | null >({
+  id : 32,
+  longitude: 105.84318434418022,
+  latitude: 21.006358476679914,
+  time :null
+});
 
-const getLocation = async () => {
-  try {
-    const res= await fetch('http://203.171.20.94:9202/iot/latest',{
-      method: "GET",
-      next: {
-        revalidate: 5,
-      }
-    });
-    if( res ) {
-      const Loc = await res.json(); 
-      if(Loc) setLoc(Loc);  
-   
-    }
-   
-    
-  } catch (error) {
-    console.log(error)
-  }
-}
+const [viewState, setviewState] = useState({
+  latitude: 21.006358476679914,
+  longitude: 105.84318434418022,
+  zoom: 17
+} )
 
-useEffect(()=> {
-  getLocation()
-}, [])
 
 const center = {
   lat: 21.006358476679914, 
@@ -56,44 +44,68 @@ const Licon = {
   scaledSize:{ width: 50, height: 50}
 }
 
-// const { isLoaded } = useJsApiLoader({
-//   googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
-// })
-
-if(Loc){console.log(Loc);
-
-const point ={
-  lat: Loc.latitude,
-  lng: Loc.longitude,
+const getLocation = async () => {
+  try {
+    const res= await fetch('http://203.171.20.94:9202/iot/latest',{
+      method: "GET",
+      next: {
+        revalidate: 5,
+      }
+    });
+    if( res ) {
+      const Loc = await res.json(); 
+      if(Loc) {setLoc(Loc);  
+     
+      console.log(Loc);
+    }
+    }
+   
+    
+  } catch (error) {
+    console.log(error)
+  }
 }
+
+useEffect(()=> {
+  getLocation();
+}, [])
+useEffect(()=>{
+  setviewState({
+      latitude:Loc?.latitude,
+      longitude:Loc?.longitude,
+      zoom: 17,
+  })
+},[Loc]);
+
+const onMove = React.useCallback(({viewState}) => {
+  const newCenter = [viewState.longitude, viewState.latitude];
+  if (turf.booleanPointInPolygon(newCenter, GEOFENCE)) {
+    setViewState(newCenter);
+  }
+}, [])
+
+
+if(Loc){
   return (
-    <ReactMapGL
+     <ReactMapGL
         mapboxAccessToken = "pk.eyJ1IjoibWluaDEwMDkiLCJhIjoiY200NWRiMGdqMHZ4ZjJqb294MjV3bmdiMiJ9.lAsmEJWGKNrEdGPHs5Ze7Q"
-        // mapboxAccessToken = {process.env.MAPBOX_TOKEN}
-        initialViewState={{
-          latitude: Loc.latitude ,
-          longitude: Loc.longitude ,
-          zoom: 17
-        }}
+        {...viewState}
+        onMove={evt => setviewState(evt.viewState)}
+      
         style={{width: '100%', height: '90vh'}}
         mapStyle="mapbox://styles/mapbox/streets-v9"
     >
-      {Loc && <Marker longitude = {point.lng} latitude = {point.lat} color = 'red' >
-        {/* <img src= {Picon.url}/> */}
+      {Loc && <Marker longitude = {Loc.longitude} latitude = {Loc.latitude} color = 'green' >
+
       </Marker>} 
     </ReactMapGL>
-    // <main>
-    //   {loc && <h1>{loc.longitude} </h1>}
-    //   {loc && <h1>{loc.latitude} </h1>}
-    //   {!loc && <h1> asfasf </h1>}
-    // </main>
-    )
+    
+  )
 }
 else{
   return (
   <ReactMapGL
         mapboxAccessToken = "pk.eyJ1IjoibWluaDEwMDkiLCJhIjoiY200NWRiMGdqMHZ4ZjJqb294MjV3bmdiMiJ9.lAsmEJWGKNrEdGPHs5Ze7Q"
-        // mapboxAccessToken = {process.env.MAPBOX_TOKEN}
         initialViewState={{
           latitude:  center.lat,
           longitude:  center.lng,
@@ -102,16 +114,10 @@ else{
         style={{width: '100%', height: '90vh'}}
         mapStyle="mapbox://styles/mapbox/streets-v9"
     >
-
-       <Marker longitude={center.lng} latitude={center.lat} color = 'red' >
-        {/* <img src= {Picon.url}/> */}
+       <Marker longitude={center.lng} latitude={center.lat} color = 'blue' >
       </Marker>
     </ReactMapGL>
-    // <main>
-    //   {loc && <h1>{loc.longitude} </h1>}
-    //   {loc && <h1>{loc.latitude} </h1>}
-    //   {!loc && <h1> asfasf </h1>}
-    // </main>
+   
     )
 
 }
