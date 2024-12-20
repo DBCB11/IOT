@@ -8,7 +8,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 export default function Home() {
   
 type loc = {
-  id : Int;
+  id : number;
   longitude: number | undefined;
   latitude: number | undefined;
   time :string;
@@ -27,7 +27,12 @@ const [Loc , setLoc]= useState<loc | null >({
   time : "1245123"
 });
 
-const [His , setHis]= useState<loc[] | null>( []);
+const [His , setHis]= useState<loc[] | null>( [{
+  id : 32,
+  longitude: 105.84318434418022,
+  latitude: 21.006358476679914,
+  time : "1245123"
+}]);
 
 const [viewState, setviewState] = useState < state | null>({
   latitude: 21.006358476679914,
@@ -35,7 +40,7 @@ const [viewState, setviewState] = useState < state | null>({
   zoom: 16
 } )
 
-const [showHistory, setShowHistory] = useState(true);
+const [showHistory, setShowHistory] = useState(false);
 
 
 
@@ -101,6 +106,9 @@ useEffect(()=>{
   })
 },[Loc]);
 
+
+if(Loc && His){
+
 const geojson = {
   type: "Feature",
   geometry: {
@@ -109,19 +117,6 @@ const geojson = {
   },
 };
 
-// Layer style for the line
-const lineStyle = {
-  id: "line",
-  type: "line",
-  paint: {
-    "line-color": "#0000FF", 
-    "line-width": 3, 
-  },
-};
-
-
-
-if(Loc){
   return (
     <div>
         <ReactMapGL
@@ -133,7 +128,7 @@ if(Loc){
             mapStyle="mapbox://styles/mapbox/streets-v9"
         >
           {Loc.longitude !== undefined&& Loc.latitude !== undefined  && <Marker longitude = {Loc?.longitude} latitude = {Loc?.latitude} color = 'green'></Marker>} 
-          {
+          {His &&
             His.slice(0, -1).map((item)=>(
               showHistory && item.longitude !== undefined&& item.latitude !== undefined  && <Marker  key={item?.id} longitude = {item?.longitude} latitude = {item?.latitude} >
                 <img
@@ -145,10 +140,14 @@ if(Loc){
             ))
           }
           {showHistory &&<Source id="line-source" type="geojson" data={geojson}>
-            <Layer {...lineStyle} />
+            <Layer id="line" type="line" paint={{ "line-color": "#0000FF", "line-width": 4 }} />
           </Source>}
         </ReactMapGL>
-        <button style = {{'text-align': 'center', 'background-color':'#008CBA' ,  padding: '15px 32px'}}
+        <button  style={{
+                textAlign: 'center', // Corrected property
+                backgroundColor: '#008CBA', // Corrected property
+                padding: '15px 32px',
+                }}
           onClick={toggleMarker}
         >
           History</button>
