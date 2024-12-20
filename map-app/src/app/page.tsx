@@ -94,17 +94,27 @@ const getHistory= async () => {
 
 useEffect(()=> {
   getLocation();
+  const interval = setInterval(getLocation, 3000);
+  return () => {
+    clearInterval(interval);
+  };
 }, [])
 useEffect(()=> {
   getHistory();
+  const interval = setInterval(getHistory, 3000);
+  return () => {
+    clearInterval(interval);
+  };
 }, [])
+
 useEffect(()=>{
-  setviewState({
-      latitude:Loc?.latitude,
-      longitude:Loc?.longitude,
-      zoom: 16,
-  })
+    setviewState((prevState) => ({
+      zoom: prevState?.zoom,  // Keep zoom intact
+      latitude: Loc?.latitude, // New Latitude for Los Angeles
+      longitude:Loc?.longitude, // New Longitude for Los Angeles
+  }))
 },[Loc]);
+
 
 
 if(Loc && His){
