@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ReactMapGL , {Marker ,Source, Layer} from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+
 export default function Home() {
   
 type loc = {
@@ -43,7 +44,13 @@ const [viewState, setviewState] = useState < state | null>({
 const [showHistory, setShowHistory] = useState(false);
 
 
+const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setSelectedDate(event.target.value);
+
+  getHistory({datetime:event.target.value});
+};
 
 const toggleMarker = () => {
   setShowHistory((prev) => !prev); // Toggle the marker visibility
@@ -64,8 +71,6 @@ const getLocation = async () => {
     if( res ) {
       const Loc = await res.json(); 
       if(Loc) {setLoc(Loc);  
-     
-      console.log(Loc);
     }
     }
   } catch (error) {
@@ -73,9 +78,10 @@ const getLocation = async () => {
   }
 }
 
-const getHistory= async () => {
+const getHistory= async (params: { datetime: string }) => {
   try {
-    const res= await fetch('http://203.171.20.94:9202/iot/get-all',{
+    const url = `http://203.171.20.94:9202/iot/by-date?time=${params.datetime}`;
+    const res= await fetch(url,{
       method: "GET",
       next: {
         revalidate: 1,
@@ -99,13 +105,13 @@ useEffect(()=> {
     clearInterval(interval);
   };
 }, [])
-useEffect(()=> {
-  getHistory();
-  const interval = setInterval(getHistory, 3000);
-  return () => {
-    clearInterval(interval);
-  };
-}, [])
+// useEffect(()=> {
+//   getHistory();
+//   const interval = setInterval(getHistory, 3000);
+//   return () => {
+//     clearInterval(interval);
+//   };
+// }, [])
 
 useEffect(()=>{
     setviewState((prevState) => ({
@@ -137,9 +143,9 @@ const geojson = {
             style={{width: '100%', height: '90vh'}}
             mapStyle="mapbox://styles/mapbox/streets-v9"
         >
-          {Loc.longitude !== undefined&& Loc.latitude !== undefined  && <Marker longitude = {Loc?.longitude} latitude = {Loc?.latitude} color = 'green'></Marker>} 
+           
           {His &&
-            His.slice(0, -1).map((item)=>(
+            His.map((item)=>(
               showHistory && item.longitude !== undefined&& item.latitude !== undefined  && <Marker  key={item?.id} longitude = {item?.longitude} latitude = {item?.latitude} >
                 <img
                   src={'/target.png'}
@@ -149,18 +155,47 @@ const geojson = {
               </Marker>
             ))
           }
+
+{Loc.longitude !== undefined&& Loc.latitude !== undefined  && <Marker longitude = {Loc?.longitude} latitude = {Loc?.latitude} color = 'green'></Marker>}
+
           {showHistory &&<Source id="line-source" type="geojson" data={geojson}>
             <Layer id="line" type="line" paint={{ "line-color": "#0000FF", "line-width": 4 }} />
           </Source>}
         </ReactMapGL>
-        <button  style={{
-                textAlign: 'center', // Corrected property
-                backgroundColor: '#008CBA', // Corrected property
-                padding: '15px 32px',
-                }}
-          onClick={toggleMarker}
+        
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+    
         >
-          History</button>
+          <input
+            type="date"
+            id="date-picker"
+            name="date-picker"
+            value={selectedDate || ''}
+            onChange={handleDateChange }
+            min="2024-01-01" 
+            max="2024-12-31" 
+            style={{
+              textAlign: 'center', 
+              backgroundColor: 'while', 
+              padding: '15px 32px',
+              color: 'black'
+              }}
+          />
+          
+            <button  style={{
+                  textAlign: 'center', // Corrected property
+                  backgroundColor: '#008CBA', // Corrected property
+                  padding: '15px 32px',
+                  }}
+            onClick={toggleMarker}
+            >
+            History</button>
+          
+          </div>
     </div>
   )
 }
