@@ -4,7 +4,17 @@ import React from 'react';
 import { useEffect, useState } from "react";
 import ReactMapGL , {Marker ,Source, Layer} from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+const forge = require('node-forge')
+const crypto = require("crypto-js")
 
+const publicKey = `
+-----BEGIN PUBLIC KEY-----
+MIIBCgKCAQEAuqvwyKfMPcEkSElMM59pBNFLJLIAqJYWdHe6w7oaHf9sPNTQ3g+/E9dUuZH8TWqimPr5Wq/2pDmD8D4wnXeNe0
+9ldsPFxGMrLxdHEscin56+SAVoX1O0bumSUIKiODHLTNkxAIibZkUbPSJZDySRLAoQ+21e9JL6/ocRMN21W37CF/HVPBB5JPLIO
+go2zqg3VX9DUIKQG72Wh8b6TGMwDE4FIQQXcsTA1UuCVEC41B0FQnygA6IdK11TTart5WMFRhWufcI/yZL7MF+/4myob5m5ESa4o
+QWHT7twHOjpfo7uJRF9PaB7lRMWQH5sEnQqBdjNUicFpTPR0D7XxKmLDQIDAQAB
+-----END PUBLIC KEY-----
+`;
 
 export default function Home() {
   
@@ -46,6 +56,21 @@ const [showHistory, setShowHistory] = useState(false);
 
 const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+function verifyWithNodeForge(data: string, signature: string, publicKeyPem: string): boolean {
+  try {
+    const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
+
+    const md = forge.md.sha256.create();
+    md.update(data, "utf8");
+    const isValid = publicKey.verify(md.digest().bytes(), forge.util.decode64(signature));
+    return isValid;
+  } catch (error) {
+    console.error("Error verifying signature with node-forge:", error);
+    return false;
+  }
+}
+
+
 const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   setSelectedDate(event.target.value);
 
@@ -68,15 +93,44 @@ const getLocation = async () => {
         revalidate: 1,
       }
     });
-    if( res ) {
-      const Loc = await res.json(); 
-      if(Loc) {setLoc(Loc);  
+
+const dataTest = JSON.stringify({
+  Id: 357,
+  Longitude: 105.011,
+  Latitude: 21.01,
+  Time: '2024-12-22T10:19:40.373',
+});
+
+
+const signatureTest =
+  'c6UkcEkCMnu/wD/+MFADXBrytItkVStNk9IbodxuA5UZLtEvsxN/dtBvQE2kulbk/StMthqbAVT8MNd+L6Ieq983WkPtnASwi63memgeIcTqfKUc9XJYXi88KjwqIlFZl9Tr6TWCFpWZaP5j8U8n6gwqMNlecQgD3XAdwAkG+SSruokGdF9jcbmEceIQiy99HBHOwuGBiKZVuBx9jbLsDY/E6GriRda0Vm+ezBG/YLY6fYiNatUeWWPLafXFAu2VWeixbDaB4eQkOXNXLUHfNaPUe4Zl4Yjhsl40DC8GUS/vryM5V0xs3oxGl9cuEehUIkIrVEQrBIEdyPhixJB9BQ==';
+
+    if( res ) { 
+      const Loc = await res.json();
+      console.log(Loc)
+      const data: string = JSON.stringify(Loc.data); 
+      const signature: string = Loc.signature.toString(); // Base64-encoded signature
+      const result: boolean = verifyWithNodeForge(data, signature, publicKey);
+      console.log('Signature is valid:', result);
+      const isVerifiedTest = verifyData(dataTest, signatureTest, publicKey);
+
+      console.log('Signature Verified:', isVerifiedTest);
+      if(Loc && result ) {setLoc(Loc.data);  
     }
     }
   } catch (error) {
     console.log(error)
   }
 }
+
+function verifyData(data: string, signature: string, publicKey: string): boolean {
+  const verifier = crypto.createVerify('sha256');
+  verifier.update(data);
+  verifier.end();
+
+  return verifier.verify(publicKey, signature, 'base64');
+}
+
 
 const getHistory= async (params: { datetime: string }) => {
   try {
@@ -100,10 +154,10 @@ const getHistory= async (params: { datetime: string }) => {
 
 useEffect(()=> {
   getLocation();
-  const interval = setInterval(getLocation, 3000);
-  return () => {
-    clearInterval(interval);
-  };
+  // const interval = setInterval(getLocation, 3000);
+  // return () => {
+  //   clearInterval(interval);
+  // };
 }, [])
 // useEffect(()=> {
 //   getHistory();
