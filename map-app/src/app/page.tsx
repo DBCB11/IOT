@@ -94,28 +94,28 @@ const getLocation = async () => {
       }
     });
 
-const dataTest = JSON.stringify({
-  Id: 357,
-  Longitude: 105.011,
-  Latitude: 21.01,
-  Time: '2024-12-22T10:19:40.373',
-});
+    // const dataTest = JSON.stringify({
+    //   Id: 357,
+    //   Longitude: 105.011,
+    //   Latitude: 21.01,
+    //   Time: '2024-12-22T10:19:40.373',
+    // });
 
 
-const signatureTest =
-  'c6UkcEkCMnu/wD/+MFADXBrytItkVStNk9IbodxuA5UZLtEvsxN/dtBvQE2kulbk/StMthqbAVT8MNd+L6Ieq983WkPtnASwi63memgeIcTqfKUc9XJYXi88KjwqIlFZl9Tr6TWCFpWZaP5j8U8n6gwqMNlecQgD3XAdwAkG+SSruokGdF9jcbmEceIQiy99HBHOwuGBiKZVuBx9jbLsDY/E6GriRda0Vm+ezBG/YLY6fYiNatUeWWPLafXFAu2VWeixbDaB4eQkOXNXLUHfNaPUe4Zl4Yjhsl40DC8GUS/vryM5V0xs3oxGl9cuEehUIkIrVEQrBIEdyPhixJB9BQ==';
+    // const signatureTest =
+    //   'c6UkcEkCMnu/wD/+MFADXBrytItkVStNk9IbodxuA5UZLtEvsxN/dtBvQE2kulbk/StMthqbAVT8MNd+L6Ieq983WkPtnASwi63memgeIcTqfKUc9XJYXi88KjwqIlFZl9Tr6TWCFpWZaP5j8U8n6gwqMNlecQgD3XAdwAkG+SSruokGdF9jcbmEceIQiy99HBHOwuGBiKZVuBx9jbLsDY/E6GriRda0Vm+ezBG/YLY6fYiNatUeWWPLafXFAu2VWeixbDaB4eQkOXNXLUHfNaPUe4Zl4Yjhsl40DC8GUS/vryM5V0xs3oxGl9cuEehUIkIrVEQrBIEdyPhixJB9BQ==';
 
     if( res ) { 
       const Loc = await res.json();
       console.log(Loc)
-      const data: string = JSON.stringify(Loc.data); 
-      const signature: string = Loc.signature.toString(); // Base64-encoded signature
-      const result: boolean = verifyWithNodeForge(data, signature, publicKey);
-      console.log('Signature is valid:', result);
-      const isVerifiedTest = verifyData(dataTest, signatureTest, publicKey);
+      // const data: string = JSON.stringify(Loc.data); 
+      // const signature: string = Loc.signature.toString(); // Base64-encoded signature
+      // const result: boolean = verifyWithNodeForge(data, signature, publicKey);
+      // console.log('Signature is valid:', result);
+      // const isVerifiedTest = verifyData(dataTest, signatureTest, publicKey);
 
-      console.log('Signature Verified:', isVerifiedTest);
-      if(Loc && result ) {setLoc(Loc.data);  
+      // console.log('Signature Verified:', isVerifiedTest);
+      if(Loc /*&& result*/ ) {setLoc(Loc.data);  
     }
     }
   } catch (error) {
@@ -123,13 +123,13 @@ const signatureTest =
   }
 }
 
-function verifyData(data: string, signature: string, publicKey: string): boolean {
-  const verifier = crypto.createVerify('sha256');
-  verifier.update(data);
-  verifier.end();
+// function verifyData(data: string, signature: string, publicKey: string): boolean {
+//   const verifier = crypto.createVerify('sha256');
+//   verifier.update(data);
+//   verifier.end();
 
-  return verifier.verify(publicKey, signature, 'base64');
-}
+//   return verifier.verify(publicKey, signature, 'base64');
+// }
 
 
 const getHistory= async (params: { datetime: string }) => {
@@ -142,7 +142,8 @@ const getHistory= async (params: { datetime: string }) => {
       }
     });
     if( res ) {
-      const data : loc[] = await res.json();
+      const jse = await res.json();
+      const data : loc[] = jse.data;
       if(data) {
         setHis(data);
       }
